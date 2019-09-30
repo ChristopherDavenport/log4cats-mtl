@@ -2,6 +2,7 @@ import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
 val log4catsV = "1.0.0"
 val catsMtlV = "0.7.0"
+val catsEffectV = "2.0.0"
 
 val kindProjectorV = "0.10.3"
 val betterMonadicForV = "0.3.1"
@@ -56,7 +57,11 @@ lazy val site = project.in(file("site"))
         "-Ywarn-unused:imports",
         "-Xlint:-missing-interpolator,_"
       ),
-      libraryDependencies += "com.47deg" %% "github4s" % "0.20.1",
+      libraryDependencies ++= Seq(
+        "com.47deg"         %% "github4s"       % "0.20.1",
+        "org.typelevel"     %% "cats-effect"    % catsEffectV,
+        "io.chrisdavenport" %% "log4cats-slf4j" % log4catsV
+      ),
       micrositePushSiteWith := GitHub4s,
       micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
       micrositeExtraMdFiles := Map(

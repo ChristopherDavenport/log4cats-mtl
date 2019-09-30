@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
 
 ## Examples
 
-```tut
+```scala
 import io.chrisdavenport.log4cats.extras.LogMessage
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.chrisdavenport.log4cats.mtl._
@@ -49,5 +49,4 @@ def doFunctorTellThings[F[_]: Sync: FunctorTell[?[_], Chain[LogMessage]]]: F[Uni
     _ <- logger.info("Logging at end of safelyDoThings")
   } yield something
 }
-
 ```
