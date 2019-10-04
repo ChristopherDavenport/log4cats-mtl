@@ -4,7 +4,7 @@ val log4catsV = "1.0.0"
 val catsMtlV = "0.7.0"
 val catsEffectV = "2.0.0"
 
-val kindProjectorV = "0.10.3"
+val kindProjectorV = "0.11.0"
 val betterMonadicForV = "0.3.1"
 
 
@@ -58,7 +58,6 @@ lazy val site = project.in(file("site"))
         "-Xlint:-missing-interpolator,_"
       ),
       libraryDependencies ++= Seq(
-        "com.47deg"         %% "github4s"       % "0.20.1",
         "org.typelevel"     %% "cats-effect"    % catsEffectV,
         "io.chrisdavenport" %% "log4cats-slf4j" % log4catsV
       ),
@@ -73,10 +72,10 @@ lazy val site = project.in(file("site"))
 
 // General Settings
 lazy val commonSettings = Seq(
-  scalaVersion := "2.13.0",
+  scalaVersion := "2.13.1",
   crossScalaVersions := Seq(scalaVersion.value, "2.12.10"),
 
-  addCompilerPlugin("org.typelevel" %  "kind-projector"     % kindProjectorV cross CrossVersion.binary),
+  addCompilerPlugin("org.typelevel" %  "kind-projector"     % kindProjectorV cross CrossVersion.full),
   addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % betterMonadicForV),
 
   libraryDependencies ++= Seq(
