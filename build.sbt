@@ -11,8 +11,6 @@ val betterMonadicForV = "0.3.1"
 // Projects
 lazy val `log4cats-mtl` = crossProject(JSPlatform, JVMPlatform)
   .in(file("."))
-  .disablePlugins(MimaPlugin)
-  .enablePlugins(NoPublishPlugin)
   .settings(commonSettings)
 
 lazy val mtlJVM = `log4cats-mtl`.jvm
