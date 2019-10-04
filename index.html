@@ -11,5 +11,44 @@
 </code></pre>
 </div>
 
+<h2 id="examples">Examples</h2>
+
+<div class="language-scala highlighter-rouge"><pre class="highlight"><code><span class="k">import</span> <span class="nn">io.chrisdavenport.log4cats.extras.LogMessage</span>
+<span class="k">import</span> <span class="nn">io.chrisdavenport.log4cats.slf4j.Slf4jLogger</span>
+<span class="k">import</span> <span class="nn">io.chrisdavenport.log4cats.mtl._</span>
+<span class="k">import</span> <span class="nn">cats._</span>
+<span class="k">import</span> <span class="nn">cats.data._</span>
+<span class="k">import</span> <span class="nn">cats.effect.Sync</span>
+<span class="k">import</span> <span class="nn">cats.implicits._</span>
+<span class="k">import</span> <span class="nn">cats.mtl._</span>
+<span class="k">import</span> <span class="nn">cats.mtl.implicits._</span>
+
+<span class="k">final</span> <span class="k">case</span> <span class="k">class</span> <span class="nc">TraceId</span><span class="o">(</span><span class="n">value</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">traceIdCtxEncoder</span><span class="k">:</span> <span class="kt">CtxEncoder</span><span class="o">[</span><span class="kt">TraceId</span><span class="o">]</span> <span class="k">=</span> <span class="o">(</span><span class="n">traceId</span><span class="k">:</span> <span class="kt">TraceId</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Map</span><span class="o">(</span><span class="s">"traceId"</span> <span class="o">-&gt;</span> <span class="n">traceId</span><span class="o">.</span><span class="n">value</span><span class="o">)</span>
+<span class="c1">// traceIdCtxEncoder: CtxEncoder[TraceId] = repl.Session$App$$anonfun$1@5fa29efa
+</span>
+<span class="k">def</span> <span class="n">doApplicativeLocalThings</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]</span><span class="kt">:</span> <span class="kt">Sync:</span> <span class="kt">ApplicativeLocal</span><span class="o">[</span><span class="kt">?</span><span class="o">[</span><span class="k">_</span><span class="o">]</span>, <span class="kt">TraceId</span><span class="o">]]</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> 
+  <span class="o">(</span><span class="k">for</span> <span class="o">{</span>
+    <span class="n">logger</span> <span class="k">&lt;-</span> <span class="nc">ApplicativeAskLogger</span><span class="o">.</span><span class="n">create</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">TraceId</span><span class="o">](</span><span class="nc">Slf4jLogger</span><span class="o">.</span><span class="n">create</span><span class="o">[</span><span class="kt">F</span><span class="o">])</span>
+    <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"Logging at start of safelyDoThings"</span><span class="o">).</span><span class="n">scope</span><span class="o">(</span><span class="nc">TraceId</span><span class="o">(</span><span class="s">"inner-id"</span><span class="o">))</span>
+    <span class="n">something</span> <span class="k">&lt;-</span> <span class="nc">Sync</span><span class="o">[</span><span class="kt">F</span><span class="o">].</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"I could do anything"</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">onError</span><span class="o">{</span><span class="k">case</span> <span class="n">e</span> <span class="k">=&gt;</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">e</span><span class="o">)(</span><span class="s">"Something Went Wrong in safelyDoThings"</span><span class="o">)}</span>
+    <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"Logging at end of safelyDoThings"</span><span class="o">)</span>
+  <span class="o">}</span> <span class="k">yield</span> <span class="n">something</span><span class="o">).</span><span class="n">scope</span><span class="o">(</span><span class="nc">TraceId</span><span class="o">(</span><span class="s">"outter-id"</span><span class="o">))</span>
+  
+<span class="k">def</span> <span class="n">doFunctorTellThings</span><span class="o">[</span><span class="kt">F</span><span class="o">[</span><span class="k">_</span><span class="o">]</span><span class="kt">:</span> <span class="kt">Sync:</span> <span class="kt">FunctorTell</span><span class="o">[</span><span class="kt">?</span><span class="o">[</span><span class="k">_</span><span class="o">]</span>, <span class="kt">Chain</span><span class="o">[</span><span class="kt">LogMessage</span><span class="o">]]]</span><span class="k">:</span> <span class="kt">F</span><span class="o">[</span><span class="kt">Unit</span><span class="o">]</span> <span class="k">=</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">logger</span> <span class="k">=</span> <span class="nc">FunctorTellLogger</span><span class="o">[</span><span class="kt">F</span>, <span class="kt">Chain</span><span class="o">]()</span>
+
+  <span class="k">for</span> <span class="o">{</span>
+    <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"Logging at start of safelyDoThings"</span><span class="o">)</span>
+    <span class="n">something</span> <span class="k">&lt;-</span> <span class="nc">Sync</span><span class="o">[</span><span class="kt">F</span><span class="o">].</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="s">"I could do anything"</span><span class="o">))</span>
+      <span class="o">.</span><span class="n">onError</span><span class="o">{</span><span class="k">case</span> <span class="n">e</span> <span class="k">=&gt;</span> <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="o">(</span><span class="n">e</span><span class="o">)(</span><span class="s">"Something Went Wrong in safelyDoThings"</span><span class="o">)}</span>
+    <span class="k">_</span> <span class="k">&lt;-</span> <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="o">(</span><span class="s">"Logging at end of safelyDoThings"</span><span class="o">)</span>
+  <span class="o">}</span> <span class="k">yield</span> <span class="n">something</span>
+<span class="o">}</span>
+</code></pre>
+</div>
+
 </div></div></section><section class="technologies"><div class="container"><div class="row"></div></div></section></main><footer id="site-footer"><div class="container"><div class="row"><div class="col-xs-6"><p>log4cats-mtl is designed and developed by <a href="https://github.com/ChristopherDavenport/log4cats-mtl" target="_blank" rel="noopener noreferrer">Christopher Davenport</a></p></div><div class="col-xs-6"><p class="text-right"><a href="https://github.com/ChristopherDavenport/log4cats-mtl"><span class="fa fa-github"></span>View on GitHub</a></p></div></div><script src="/log4cats-mtl/highlight/highlight.pack.js"></script><script>hljs.initHighlighting();
               </script></div></footer></body></html>
