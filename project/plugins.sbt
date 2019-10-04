@@ -9,3 +9,4 @@ addSbtPlugin("io.chrisdavenport" % "sbt-no-publish" % "0.1.0")
 
 addSbtPlugin("com.47deg" % "sbt-microsites" % "0.9.6")
 addSbtPlugin("org.scalameta" % "sbt-mdoc" % "1.3.2")
+addSbtPlugin("org.scalameta" % "sbt-scalafmt" % "2.0.5")

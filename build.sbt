@@ -1,31 +1,20 @@
-import sbtcrossproject.CrossPlugin.autoImport.{crossProject, CrossType}
+import sbtcrossproject.CrossPlugin.autoImport.crossProject
 
-val catsV = "2.0.0"
-val catsEffectV = "2.0.0"
-val shapelessV = "2.3.3"
-val fs2V = "2.0.0"
-val http4sV = "0.21.0-M5"
-val circeV = "0.12.1"
-val doobieV = "0.8.2"
 val log4catsV = "1.0.0"
-val specs2V = "4.7.1"
+val catsMtlV = "0.7.0"
+val catsEffectV = "2.0.0"
 
-val kindProjectorV = "0.10.3"
+val kindProjectorV = "0.11.0"
 val betterMonadicForV = "0.3.1"
 
 
-
 // Projects
-lazy val `log4cats-mtl` = project.in(file("."))
-  .disablePlugins(MimaPlugin)
-  .enablePlugins(NoPublishPlugin)
-  .aggregate(core)
-
-lazy val core = project.in(file("core"))
+lazy val `log4cats-mtl` = crossProject(JSPlatform, JVMPlatform)
+  .in(file("."))
   .settings(commonSettings)
-  .settings(
-    name := "log4cats-mtl"
-  )
+
+lazy val mtlJVM = `log4cats-mtl`.jvm
+lazy val mtlJS  = `log4cats-mtl`.js
 
 lazy val site = project.in(file("site"))
   .disablePlugins(MimaPlugin)
@@ -33,7 +22,7 @@ lazy val site = project.in(file("site"))
   .enablePlugins(MdocPlugin)
   .enablePlugins(NoPublishPlugin)
   .settings(commonSettings)
-  .dependsOn(core)
+  .dependsOn(mtlJVM)
   .settings{
     import microsites._
     Seq(
@@ -66,7 +55,10 @@ lazy val site = project.in(file("site"))
         "-Ywarn-unused:imports",
         "-Xlint:-missing-interpolator,_"
       ),
-      libraryDependencies += "com.47deg" %% "github4s" % "0.20.1",
+      libraryDependencies ++= Seq(
+        "org.typelevel"     %% "cats-effect"    % catsEffectV,
+        "io.chrisdavenport" %% "log4cats-slf4j" % log4catsV
+      ),
       micrositePushSiteWith := GitHub4s,
       micrositeGithubToken := sys.env.get("GITHUB_TOKEN"),
       micrositeExtraMdFiles := Map(
@@ -81,41 +73,12 @@ lazy val commonSettings = Seq(
   scalaVersion := "2.13.1",
   crossScalaVersions := Seq(scalaVersion.value, "2.12.10"),
 
-  addCompilerPlugin("org.typelevel" % "kind-projector" % kindProjectorV cross CrossVersion.binary),
+  addCompilerPlugin("org.typelevel" %  "kind-projector"     % kindProjectorV cross CrossVersion.full),
   addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % betterMonadicForV),
 
   libraryDependencies ++= Seq(
-    "org.typelevel"               %% "cats-core"                  % catsV,
-    "org.typelevel"               %% "alleycats-core"             % catsV,
-
-    "org.typelevel"               %% "cats-effect"                % catsEffectV,
-
-    "com.chuusai"                 %% "shapeless"                  % shapelessV,
-
-    "co.fs2"                      %% "fs2-core"                   % fs2V,
-    "co.fs2"                      %% "fs2-io"                     % fs2V,
-
-    "org.http4s"                  %% "http4s-dsl"                 % http4sV,
-    "org.http4s"                  %% "http4s-blaze-server"        % http4sV,
-    "org.http4s"                  %% "http4s-blaze-client"        % http4sV,
-    "org.http4s"                  %% "http4s-circe"               % http4sV,
-
-    "io.circe"                    %% "circe-core"                 % circeV,
-    "io.circe"                    %% "circe-generic"              % circeV,
-    "io.circe"                    %% "circe-parser"               % circeV,
-
-    "org.tpolecat"                %% "doobie-core"                % doobieV,
-    "org.tpolecat"                %% "doobie-h2"                  % doobieV,
-    "org.tpolecat"                %% "doobie-hikari"              % doobieV,
-    "org.tpolecat"                %% "doobie-postgres"            % doobieV,
-    "org.tpolecat"                %% "doobie-specs2"              % doobieV       % Test,
-
-    "io.chrisdavenport"           %% "log4cats-core"              % log4catsV,
-    "io.chrisdavenport"           %% "log4cats-slf4j"             % log4catsV,
-    "io.chrisdavenport"           %% "log4cats-testing"           % log4catsV     % Test,
-
-    "org.specs2"                  %% "specs2-core"                % specs2V       % Test,
-    "org.specs2"                  %% "specs2-scalacheck"          % specs2V       % Test
+    "io.chrisdavenport" %% "log4cats-core" % log4catsV,
+    "org.typelevel"     %% "cats-mtl-core" % catsMtlV
   )
 )
 
